@@ -1,5 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-
+import weatherForecastSlice from "./Feature/WeatherForecastSlice";
 export const store = configureStore({
-  reducer: {},
+  reducer: {
+    weatherForecast : weatherForecastSlice.reducer
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+    immutableCheck: false,
+    serializableCheck: false,
+  })
 })
