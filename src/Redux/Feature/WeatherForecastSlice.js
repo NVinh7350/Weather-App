@@ -11,9 +11,7 @@ const initialState = {
     status: 'idle',
     message: '',
   },
-  currentWeather: {},
-  hourlyForecast: [],
-  dailyForecast: [],
+  weatherForecastsList: []
 };
 
 const weatherForecastSlice = createSlice({
@@ -25,9 +23,9 @@ const weatherForecastSlice = createSlice({
     },
   },
   extraReducers: build => {
-    // callWeatherForecastAPI states
+    // setWeatherForecastsList states
     // if pending then process status is loading
-    build.addCase(callWeatherForecastAPI.pending, (state, action) => {
+    build.addCase(setWeatherForecastsList.pending, (state, action) => {
       state.process = {
         status: 'loading',
         message: '...',
@@ -35,22 +33,36 @@ const weatherForecastSlice = createSlice({
     });
     // if fulfilled then process status is success
     // currentWeather, hourlyForecast, dailyForecast are assigned the forecast value
-    build.addCase(callWeatherForecastAPI.fulfilled, (state, action) => {
+    build.addCase(setWeatherForecastsList.fulfilled, (state, action) => {
       state.process = {
         status: 'success',
         message: 'update is success',
       };
-      state.currentWeather = action.payload?.current;
-      // get the attributes contained in forecastday list and remove hourly forecast
-      state.dailyForecast = action.payload?.forecast?.forecastday?.map(e => {
-        const {hour, ...dailyForecast} = e;
-        return dailyForecast;
-      });
-      // get today's hourly forecast
-      state.hourlyForecast = action.payload?.forecast?.forecastday[0]?.hour;
+      state.weatherForecastsList = action.payload;
     });
     // if reject then process status is error
-    build.addCase(callWeatherForecastAPI.rejected, (state, action) => {
+    build.addCase(setWeatherForecastsList.rejected, (state, action) => {
+      state.process = {
+        status: 'error',
+        message: action.error.message
+      }
+    });
+    // getWeatherForecastsList
+    build.addCase(getWeatherForecastsList.pending, (state, action) => {
+      state.process = {
+        status: 'loading',
+        message: '...',
+      };
+    });
+    build.addCase(getWeatherForecastsList.fulfilled, (state, action) => {
+      state.process = {
+        status: 'success',
+        message: 'update is success',
+      };
+      state.weatherForecastsList = action.payload;
+    });
+    // if reject then process status is error
+    build.addCase(getWeatherForecastsList.rejected, (state, action) => {
       state.process = {
         status: 'error',
         message: action.error.message
@@ -61,16 +73,61 @@ const weatherForecastSlice = createSlice({
 
 export default weatherForecastSlice;
 
-export const callWeatherForecastAPI = createAsyncThunk(
-  'weatherForecast/callWeatherForecastAPI',
-  async position => {
-    let url = `http://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${position}&aqi=yes`;
-    const weatherForecastData = await (await fetch(url)).json();
-    return weatherForecastData;
-  },
+export const setWeatherForecastsList = createAsyncThunk(
+  'weatherForecast/setWeatherForecastsList',
+  async (locationList, {getState}) => {
+    const state = getState();
+    // there are user options about language and temperature unit
+    const options = `&lang=${state.setting.language.lang}&units=${state.setting.unit}`;
+    const weatherForecastsList = [];
+    // loop location in location list to call and add weather forecast to weatherForecastsList 
+    for (const iterator of locationList) {
+      const weatherForecast = await callWeatherForecastAPI(Object.keys(iterator)[0], options);
+      weatherForecastsList.push({
+        [Object.keys(iterator)[0]] : weatherForecast
+      });
+    }
+
+    await setAsyncStorage('weatherForecastsList', JSON.stringify(weatherForecastsList));
+
+    return weatherForecastsList
+  }
 );
 
+export const getWeatherForecastsList = createAsyncThunk(
+  'weatherForecast/getWeatherForecastsList',
+  async () => {
+    const weatherForecastsList = JSON.parse(await getAsyncStorage('weatherForecastsList'));
+    if (!weatherForecastsList) {
+      weatherForecastsList = [];
+    }
+    return weatherForecastsList;
+  }
+)
+
+const callWeatherForecastAPI = async (location, options) => {
+  // the paths to call API
+  let urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}${options}`;
+  let urlHourlyForecast = `https://pro.openweathermap.org/data/2.5/forecast/hourly?q=${location}&appid=${API_KEY}${options}`;
+  let urlDailyForecast = `https://api.openweathermap.org/data/2.5/forecast/daily?q=${location}&cnt=7&appid=${API_KEY}${options}`;
+  // fetch API from OpenWeatherMap
+  const currentWeather = await (await fetch(urlCurrentWeather)).json();
+  const hourlyForecast = await (await fetch(urlHourlyForecast)).json();
+  const dailyForecast = await (await fetch(urlDailyForecast)).json();
+  // weatherForecast is object contains all weather forecasts information about location
+  const weatherForecast = {
+    'currentWeather': currentWeather,
+    'hourlyForecast': hourlyForecast,
+    'dailyForecast': dailyForecast
+  };
+  // check value response if cod != 200 then the response may be wrong
+  for (const iterator of Object.values(weatherForecast)) {
+    if(iterator?.cod != 200) {
+      return iterator.message;
+    } 
+  }
+  return weatherForecast
+}
+
 export const processSelect = (state) => state.weatherForecast.process;
-export const currentWeatherSelect = (state) => state.weatherForecast.currentWeather;
-export const dailyForecastSelect = (state) => state.weatherForecast.dailyForecast;
-export const hourlyForecastSelect = (state) => state.weatherForecast.hourlyForecast;
+export const weatherForecastsListSelect = (state) => state.weatherForecast.weatherForecastsList;

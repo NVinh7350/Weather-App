@@ -4,11 +4,11 @@ export const LANGUAGE = {
         lang : 'en'
     },
     VietNamese : {
-        lang : 'vn'
+        lang : 'vi'
     }
 }
 // The unit type is specified by OpenWeatherMapAPI
 export const UNIT = {
-    Celsius	: 'Metric',
-    Fahrenheit : 'Imperial'
+    Celsius	: 'metric',
+    Fahrenheit : 'imperial'
 }
