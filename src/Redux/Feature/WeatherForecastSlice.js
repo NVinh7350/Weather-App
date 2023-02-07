@@ -1,10 +1,10 @@
-import {createAsyncThunk, createSelector, createSlice} from '@reduxjs/toolkit';
+import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit';
 import {
   setAsyncStorage,
   getAsyncStorage,
   clearAsyncStorage,
 } from '../../Storage';
-import {API_KEY} from '../../Utilities/Constant';
+import { API_KEY } from '../../Utilities/Constant';
 
 const initialState = {
   process: {
@@ -75,21 +75,20 @@ export default weatherForecastSlice;
 
 export const setWeatherForecastsList = createAsyncThunk(
   'weatherForecast/setWeatherForecastsList',
-  async (locationList, {getState}) => {
+  async (locationList, { getState }) => {
     const state = getState();
     // there are user options about language and temperature unit
     const options = `&lang=${state.setting.language.lang}&units=${state.setting.unit}`;
     const weatherForecastsList = [];
     // loop location in location list to call and add weather forecast to weatherForecastsList 
     for (const iterator of locationList) {
-      const weatherForecast = await callWeatherForecastAPI(Object.keys(iterator)[0], options);
+      const weatherForecast = await callWeatherForecastAPI(iterator, options);
       weatherForecastsList.push({
-        [Object.keys(iterator)[0]] : weatherForecast
+        weatherForecast: weatherForecast,
+        location: iterator
       });
     }
-
     await setAsyncStorage('weatherForecastsList', JSON.stringify(weatherForecastsList));
-
     return weatherForecastsList
   }
 );
@@ -106,10 +105,11 @@ export const getWeatherForecastsList = createAsyncThunk(
 )
 
 const callWeatherForecastAPI = async (location, options) => {
+  let locationStr = location?.lon ? `lon=${location.lon}&lat=${location.lat}` : `q=${location.name}`;
   // the paths to call API
-  let urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}${options}`;
-  let urlHourlyForecast = `https://pro.openweathermap.org/data/2.5/forecast/hourly?q=${location}&appid=${API_KEY}${options}`;
-  let urlDailyForecast = `https://api.openweathermap.org/data/2.5/forecast/daily?q=${location}&cnt=7&appid=${API_KEY}${options}`;
+  let urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?${locationStr}&appid=${API_KEY}${options}`;
+  let urlHourlyForecast = `https://pro.openweathermap.org/data/2.5/forecast/hourly?${locationStr}&appid=${API_KEY}${options}`;
+  let urlDailyForecast = `https://api.openweathermap.org/data/2.5/forecast/daily?${locationStr}&cnt=7&appid=${API_KEY}${options}`;
   // fetch API from OpenWeatherMap
   const currentWeather = await (await fetch(urlCurrentWeather)).json();
   const hourlyForecast = await (await fetch(urlHourlyForecast)).json();
@@ -122,12 +122,48 @@ const callWeatherForecastAPI = async (location, options) => {
   };
   // check value response if cod != 200 then the response may be wrong
   for (const iterator of Object.values(weatherForecast)) {
-    if(iterator?.cod != 200) {
+    if (iterator?.cod != 200) {
       return iterator.message;
-    } 
+    }
   }
   return weatherForecast
 }
 
 export const processSelect = (state) => state.weatherForecast.process;
 export const weatherForecastsListSelect = (state) => state.weatherForecast.weatherForecastsList;
+export const currentWeatherSelect = createSelector(
+  state => state.location.designatedLocation,
+  weatherForecastsListSelect,
+  (designatedLocation, weatherForecastsList) => {
+    for (const iterator of weatherForecastsList) {
+      if (iterator.location.name == designatedLocation.name) {
+        return iterator.weatherForecast.currentWeather
+      }
+    }
+    return null;
+  }
+)
+export const dailyForecastSelect = createSelector(
+  state => state.location.designatedLocation,
+  weatherForecastsListSelect,
+  (designatedLocation, weatherForecastsList) => {
+    for (const iterator of weatherForecastsList) {
+      if (iterator.location.name == designatedLocation.name) {
+        return iterator.weatherForecast.dailyForecast
+      }
+    }
+    return null;
+  }
+)
+export const hourlyForecastSelect = createSelector(
+  state => state.location.designatedLocation,
+  weatherForecastsListSelect,
+  (designatedLocation, weatherForecastsList) => {
+    for (const iterator of weatherForecastsList) {
+      if (iterator.location.name == designatedLocation.name) {
+        return iterator.weatherForecast.hourlyForecast
+      }
+    }
+    return null;
+  }
+)
