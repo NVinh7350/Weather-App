@@ -15,7 +15,8 @@ const initialState = {
     },
     currentLocation: {},
     addedLocations: [],
-    searchedLocations: []
+    searchedLocations: [],
+    designatedLocation: {},
 };
 
 const locationSlice = createSlice({
@@ -25,6 +26,9 @@ const locationSlice = createSlice({
         setProcessStatus: (state, action) => {
             state.process.status = action.payload;
         },
+        setDesignatedLocation: (state, action) => {
+            state.designatedLocation = action.payload;
+        }
     },
     extraReducers: (build) => {
         // FindCurrentLocation cases
@@ -165,12 +169,12 @@ export const findLocationByName = createAsyncThunk(
         if (searchName) {
             CITY.forEach(element => {
                 const reg = new RegExp(searchName, 'g')
-                // maximum 5 result on one find
+                // // maximum 5 result on one find
                 if (searchedResultList.length >= 5) {
                     return;
                 }
-                // result is push on searchResultList, matching with searchName
-                else if (Object.keys(element)[0].match(reg)) {
+                // // result is push on searchResultList, matching with searchName
+                else if (reg.test(element.name) || reg.test(element.locationName)) {
                     searchedResultList.push(element)
                 }
             });
@@ -212,6 +216,8 @@ export const setAddedLocations = createAsyncThunk('location/setAddedLocations',
     }
 )
 
+export const processSelect = (state) => state.location.process
 export const currentLocationSelect = (state) => state.location.currentLocation
 export const searchedLocationsSelect = (state) => state.location.searchedLocations
 export const addedLocationsSelect = (state) => state.location.addedLocations
+export const designatedLocationSelect = (state) => state.location.designatedLocation
