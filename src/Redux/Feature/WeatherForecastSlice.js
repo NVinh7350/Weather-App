@@ -82,9 +82,9 @@ export const setWeatherForecastsList = createAsyncThunk(
     const weatherForecastsList = [];
     // loop location in location list to call and add weather forecast to weatherForecastsList 
     for (const iterator of locationList) {
-      const weatherForecast = await callWeatherForecastAPI(Object.keys(iterator)[0], options);
+      const weatherForecast = await callWeatherForecastAPI(iterator.name, options);
       weatherForecastsList.push({
-        [Object.keys(iterator)[0]] : weatherForecast
+        [iterator.name] : weatherForecast
       });
     }
 
