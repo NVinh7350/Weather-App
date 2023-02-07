@@ -131,14 +131,15 @@ const requestLocationPermission = async () => {
 // get longitude and latitude by Geolocation API, and use to take location information by OpenWeatherMap API 
 export const findCurrentLocation = createAsyncThunk(
     'location/findCurrentLocation',
-    async () => {
+    async (_, { getState }) => {
+        const state = getState();
+        const language = state.setting.language;
         let currentLocation = {
             "name": "Duy Xuyên District",
-            "local_names": { "ko": "즈이쑤옌현", "vi": "Huyện Duy Xuyên", "zh": "潍川县", "en": "Duy Xuyên District" },
+            "locationName": "Huyện Duy Xuyên",
             "lat": 15.7928895,
             "lon": 108.1605745130791,
-            "country": "VN",
-            "state": "Quang Nam Province"
+            "country": "Vietnam",
         };
         // if location permission is negative, return location default (my home :))) )
         if (await requestLocationPermission() != PermissionsAndroid.RESULTS.GRANTED) {
@@ -146,15 +147,26 @@ export const findCurrentLocation = createAsyncThunk(
         } else {
             const optionGeolocation = {
                 timeout: 30000, // 30 second
-                enableHighAccuracy: true //set true to use GPS, false to use Wifi
+                enableHighAccuracy: false //set true to use GPS, false to use Wifi
             }
             const currentPosition = await (new Promise((resolve, reject) => {
                 // use Geolocation API to take longitude and latitude
                 Geolocation.getCurrentPosition(resolve, reject, optionGeolocation)
             }))
-            const url = `http://api.openweathermap.org/geo/1.0/reverse?lat=${currentPosition?.coords?.latitude}&lon=${currentPosition.coords?.longitude}&limit=1&appid=${API_KEY}`
-            currentLocation = ((await fetch(url)).json());
-            return currentLocation;
+            const url = `http://api.openweathermap.org/geo/1.0/reverse?lat=${currentPosition?.coords?.latitude}&lon=${currentPosition.coords?.longitude}&limit=1&appid=${API_KEY}&lang=vi`
+            currentLocation = await ((await fetch(url)).json());
+            // console.log(currentLocation)
+            if (Array.isArray(currentLocation)) {
+                return {
+                    name: currentLocation[0].name,
+                    locationName: currentLocation[0].local_names[language.lang],
+                    country: currentLocation[0].country,
+                    lon: currentLocation[0].lon,
+                    lat: currentLocation[0].lat
+                }
+            } else {
+                return currentLocation;
+            }
         }
 
     }
