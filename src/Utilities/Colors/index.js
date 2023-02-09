@@ -10,7 +10,7 @@ export default colors = {
     GRAY : '#BEBEBE',
     DIM_GRAY : '#A9A9A9',
     DARK_GRAY : '#696969',
-    LIGHT_SLATE_GRAY : '	#778899',
+    LIGHT_SLATE_GRAY : '#778899',
 
     // Black
     BLACK: '#111111',
