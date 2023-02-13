@@ -29,7 +29,7 @@ const SummaryCard = ({ location }) => {
                     {Math.round(currentWeather?.main?.temp)}
                 </Text>
                 <Text style={styles.unitText}>
-                    {`º${unitTemperature == 'metric' ? 'C' : 'F'}`}
+                    {`°${unitTemperature == 'metric' ? 'C' : 'F'}`}
                 </Text>
             </View>
             <Text style={styles.describeText}>

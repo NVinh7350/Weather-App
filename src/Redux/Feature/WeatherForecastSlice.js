@@ -11,7 +11,8 @@ const initialState = {
     status: 'idle',
     message: '',
   },
-  weatherForecastsList: []
+  weatherForecastsList: [],
+  dailyForecastDetail: [],
 };
 
 const weatherForecastSlice = createSlice({
@@ -21,6 +22,9 @@ const weatherForecastSlice = createSlice({
     setProcessStatus: (state, action) => {
       state.process.status = action.payload;
     },
+    setDailyForecastDetail: (state, action) => {
+      state.dailyForecastDetail = action.payload;
+    }
   },
   extraReducers: build => {
     // setWeatherForecastsList states
@@ -104,7 +108,7 @@ export const getWeatherForecastsList = createAsyncThunk(
   }
 )
 
-const callWeatherForecastAPI = async (location, options) => {
+export const callWeatherForecastAPI = async (location, options) => {
   let locationStr = location?.lon ? `lon=${location.lon}&lat=${location.lat}` : `q=${location.name}`;
   // the paths to call API
   let urlCurrentWeather = `https://api.openweathermap.org/data/2.5/weather?${locationStr}&appid=${API_KEY}${options}`;
@@ -167,3 +171,4 @@ export const hourlyForecastSelect = createSelector(
     return null;
   }
 )
+export const dailyForecastDetailSelect = (state) => state.weatherForecast.dailyForecastDetail;

@@ -4,7 +4,7 @@ import { Colors, screenHeight, screenWidth } from '../../Utilities'
 import { useSelector } from 'react-redux';
 import { languageSelect } from '../../Redux/Feature/SettingSlice';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import { iconId } from '../../Utilities/WeatherIcon';
+import { iconIdLight } from '../../Utilities/WeatherIcon';
 
 const HourlyForecastItem = ({ item }) => {
     const windDeg = `${item.wind.deg}deg`;
@@ -17,11 +17,11 @@ const HourlyForecastItem = ({ item }) => {
     const sunriseTime = new Date(item.sunrise * 1000);
     // set pathIcon of item
     const pathIcon = itemTime >= sunsetTime.getHours() || itemTime < sunriseTime.getHours() ?
-        iconId(`${item.weather[0].id}n`) : iconId(`${item.weather[0].id}`)
+        iconIdLight(`${item.weather[0].id}n`) : iconIdLight(`${item.weather[0].id}`)
 
 
 
-    let temperature = `${Math.round(item.main.temp)}º`;
+    let temperature = `${Math.round(item.main.temp)}°`;
     let timeString = '';
     switch (itemTime) {
         case sunriseTime.getHours():
@@ -106,5 +106,4 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: Colors.LIGHT_GRAY,
     }
-
 })
