@@ -11,10 +11,10 @@ const App = () => {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName='Home' screenOptions={{ headerShown : false }}>
-          <Stack.Screen name="Home" component={Home} />
-          <Stack.Screen name="Search" component={Search} />
-          <Stack.Screen name="DailyForecast" component={DailyForecast} />
+        <Stack.Navigator initialRouteName='Home' screenOptions={{ headerShown : false , animation:'slide_from_left'}}>
+          <Stack.Screen name="Home" component={Home} options={{animation:'simple_push'}}/>
+          <Stack.Screen name="Search" component={Search} options={{animation:'slide_from_left'}}/>
+          <Stack.Screen name="DailyForecast" component={DailyForecast} options={{animation:'slide_from_right'}}/>
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

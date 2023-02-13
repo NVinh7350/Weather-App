@@ -5,7 +5,7 @@ export default colors = {
     SNOW : '#FFFAFA',
 
     // Gray
-    LIGHT_GRAY : '#D3D3D3',
+    LIGHT_GRAY : '#ededed',
     SILVER_GRAY: '#C0C0C0', 
     GRAY : '#BEBEBE',
     DIM_GRAY : '#A9A9A9',
@@ -17,7 +17,7 @@ export default colors = {
 
     // Blue
     LAVENDER : '#E6E6FA',
-    BABY_BLUE : '#7EC8E3',
+    BABY_BLUE : '#5684B8',
     BLUE : '#0000FF',
     NAVY_BLUE : '#000080',
     DARK_BLUE : '#050A30',
